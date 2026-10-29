@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jwt.exceptions import InvalidTokenError
 
 load_dotenv()
@@ -16,7 +16,7 @@ ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 if not SECRET_KEY:
     raise RuntimeError("JWT_SECRET_KEY is missing from environment")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+bearer_scheme = HTTPBearer()
 
 
 # Create a JWT
@@ -62,6 +62,7 @@ def validate_access_token(token: str) -> int:
 
 # Dependency for protected endpoints
 def get_current_user_id(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> int:
+    token = credentials.credentials
     return validate_access_token(token)
